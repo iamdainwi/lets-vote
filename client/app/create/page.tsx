@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createPoll } from "@/lib/api";
 import { Plus, Rocket, Trash2 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 const DURATION_PRESETS = [
   { label: "15m", value: 15 },
@@ -177,7 +178,7 @@ export default function Home() {
             </span>
             Options
           </label>
-          
+
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             {options.map((opt, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: "16px" }}>
@@ -294,7 +295,7 @@ export default function Home() {
               Redis TTL
             </span>
           </div>
-          
+
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {DURATION_PRESETS.map((p) => {
               const active = duration === p.value;
@@ -358,7 +359,7 @@ export default function Home() {
           }}
         >
           {isPending ? (
-            <span style={{ display: "inline-block", animation: "spin 1s linear infinite" }}>⏳</span>
+            <Spinner />
           ) : (
             <Rocket size={24} />
           )}
