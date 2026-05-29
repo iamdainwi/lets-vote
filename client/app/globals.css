@@ -1,0 +1,119 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--on-background);
+
+  --font-sans: "Hanken Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-heading: "Hanken Grotesk", sans-serif;
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--on-primary);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--on-secondary);
+  --color-muted: var(--surface-variant);
+  --color-muted-foreground: var(--on-surface-variant);
+  --color-accent: var(--primary-container);
+  --color-accent-foreground: var(--on-primary-container);
+  --color-destructive: var(--error);
+  --color-border: var(--outline);
+  --color-input: var(--surface-container-high);
+  --color-ring: var(--primary);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-full: var(--radius-full);
+}
+
+/* ── Kinetic Pulse Design Tokens ─────────────────────────────────── */
+:root {
+  /* Colors */
+  --surface: #0f1419;
+  --surface-dim: #0f1419;
+  --surface-bright: #353940;
+  --surface-container-lowest: #0a0f14;
+  --surface-container-low: #181c21;
+  --surface-container: #1c2026;
+  --surface-container-high: #262a30;
+  --surface-container-highest: #31353b;
+  --on-surface: #dfe2ea;
+  --on-surface-variant: #c4c5d9;
+  --inverse-surface: #dfe2ea;
+  --inverse-on-surface: #2c3137;
+  --outline: #8e90a2;
+  --outline-variant: #434656;
+  --surface-tint: #b8c3ff;
+  --primary: #b8c3ff;
+  --on-primary: #002388;
+  --primary-container: #2e5bff;
+  --on-primary-container: #efefff;
+  --inverse-primary: #124af0;
+  --secondary: #ffffff;
+  --on-secondary: #003828;
+  --secondary-container: #36ffc4;
+  --on-secondary-container: #007255;
+  --tertiary: #c5c5d7;
+  --on-tertiary: #2e2f3e;
+  --tertiary-container: #6b6c7c;
+  --on-tertiary-container: #f0efff;
+  --error: #ffb4ab;
+  --on-error: #690005;
+  --error-container: #93000a;
+  --on-error-container: #ffdad6;
+  --primary-fixed: #dde1ff;
+  --primary-fixed-dim: #b8c3ff;
+  --on-primary-fixed: #001356;
+  --on-primary-fixed-variant: #0035be;
+  --secondary-fixed: #36ffc4;
+  --secondary-fixed-dim: #00e1ab;
+  --on-secondary-fixed: #002116;
+  --on-secondary-fixed-variant: #00513c;
+  --tertiary-fixed: #e1e1f4;
+  --tertiary-fixed-dim: #c5c5d7;
+  --on-tertiary-fixed: #191b28;
+  --on-tertiary-fixed-variant: #444655;
+  --background: #0f1419;
+  --on-background: #dfe2ea;
+  --surface-variant: #31353b;
+
+  /* Rounded */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+}
+
+/* ── Base reset ─────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    color-scheme: dark;
+    scrollbar-color: var(--outline-variant) transparent;
+    scrollbar-width: thin;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--background);
+    color: var(--on-background);
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+}
