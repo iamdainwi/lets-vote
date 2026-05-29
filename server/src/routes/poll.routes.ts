@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
     createPollHandler,
+    listPollsHandler,
     getPollHandler,
     voteHandler,
     sseStreamHandler,
@@ -8,6 +9,7 @@ import {
 
 const router = Router();
 
+router.get("/", listPollsHandler);
 router.post("/", createPollHandler);
 router.get("/:id", getPollHandler);
 router.post("/:id/vote", voteHandler);

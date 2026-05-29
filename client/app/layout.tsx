@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { Zap, Bell, User } from "lucide-react";
+import { Zap } from "lucide-react";
 import Link from "next/link";
 
 const hankenGrotesk = Hanken_Grotesk({
@@ -45,12 +45,14 @@ export default function RootLayout({
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: "16px 32px",
+            padding: "16px",
             background: "var(--surface-container)",
             borderBottom: "1px solid var(--surface-container-highest)",
+            flexWrap: "wrap",
+            gap: "16px",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "64px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
             {/* Logo */}
             <Link href="/" style={{ display: "flex", alignItems: "center", gap: "8px", textDecoration: "none" }}>
               <Zap style={{ color: "var(--secondary-container)" }} size={24} strokeWidth={3} />
@@ -67,48 +69,15 @@ export default function RootLayout({
               </span>
             </Link>
 
-            {/* Nav Links */}
             <nav style={{ display: "flex", alignItems: "center", gap: "32px", fontSize: "14px", fontWeight: 600 }}>
-              <span style={{ color: "var(--on-surface-variant)", cursor: "not-allowed" }}>Explore</span>
-              <span style={{ color: "var(--on-surface-variant)", cursor: "not-allowed" }}>Trending</span>
-              <span style={{ color: "var(--on-surface-variant)", cursor: "not-allowed" }}>History</span>
+              <Link href="/explore" className="text-muted-foreground hover:text-(--on-surface) transition-colors no-underline">
+                Explore
+              </Link>
             </nav>
           </div>
 
           {/* Right Actions */}
           <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            <button
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: "50%",
-                background: "var(--surface-container-high)",
-                border: "1px solid var(--surface-container-highest)",
-                color: "var(--on-surface)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "not-allowed",
-              }}
-            >
-              <Bell size={18} />
-            </button>
-            <button
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: "50%",
-                background: "var(--surface-container-high)",
-                border: "1px solid var(--surface-container-highest)",
-                color: "var(--on-surface)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "not-allowed",
-              }}
-            >
-              <User size={18} />
-            </button>
             <Link
               href="/"
               style={{

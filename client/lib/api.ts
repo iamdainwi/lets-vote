@@ -14,6 +14,13 @@ export interface Poll {
     expired: boolean;
 }
 
+export interface PollSummary {
+    id: string;
+    question: string;
+    totalVotes: number;
+    expiresAt: number;
+}
+
 export async function createPoll(
     question: string,
     options: string[],
@@ -28,6 +35,14 @@ export async function createPoll(
         const err = await res.json();
         throw new Error(err.error || "Failed to create poll");
     }
+    return res.json();
+}
+
+export async function listActivePolls(): Promise<PollSummary[]> {
+    const res = await fetch(`${API_BASE}/api/polls`, {
+        cache: "no-store",
+    });
+    if (!res.ok) throw new Error("Failed to fetch active polls");
     return res.json();
 }
 

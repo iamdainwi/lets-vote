@@ -7,18 +7,18 @@ import Link from "next/link";
 
 function useCountdown(expiresAt: number) {
   const [remaining, setRemaining] = useState(() => Math.max(0, expiresAt - Date.now()));
-  
+
   useEffect(() => {
     if (remaining <= 0) return;
     const id = setInterval(() => setRemaining(Math.max(0, expiresAt - Date.now())), 1000);
     return () => clearInterval(id);
   }, [expiresAt, remaining]);
-  
+
   const d = Math.floor(remaining / 86400000);
   const h = Math.floor((remaining % 86400000) / 3600000);
   const m = Math.floor((remaining % 3600000) / 60000);
   const s = Math.floor((remaining % 60000) / 1000);
-  
+
   let display = "";
   if (d > 0) {
     display = `${d}d ${String(h).padStart(2, "0")}h ${String(m).padStart(2, "0")}m`;
@@ -27,7 +27,7 @@ function useCountdown(expiresAt: number) {
   } else {
     display = `${String(m).padStart(2, "0")} : ${String(s).padStart(2, "0")}`;
   }
-  
+
   return {
     expired: remaining <= 0,
     display,
@@ -37,14 +37,14 @@ function useCountdown(expiresAt: number) {
 function CountUp({ value }: { value: number }) {
   const [display, setDisplay] = useState(value);
   const prev = useRef(value);
-  
+
   useEffect(() => {
     if (prev.current !== value) {
       prev.current = value;
       setDisplay(value);
     }
   }, [value]);
-  
+
   return <span>{display.toLocaleString()}</span>;
 }
 
@@ -57,13 +57,13 @@ export default function PollClient({ poll: initialPoll }: Props) {
   const [voting, setVoting] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  
+
   const { expired, display: countdown } = useCountdown(poll.expiresAt);
   const isExpired = expired || poll.expired;
 
   useEffect(() => {
     const s = localStorage.getItem(`voted:${poll.id}`);
-    if (s) setVotedFor(s);
+    if (s) setTimeout(() => setVotedFor(s), 0);
   }, [poll.id]);
 
   useEffect(() => {
@@ -80,7 +80,7 @@ export default function PollClient({ poll: initialPoll }: Props) {
   }, [poll.id, isExpired]);
 
   const total = Object.values(votes).reduce((a, b) => a + b, 0);
-  
+
   const getPct = useCallback((id: string) => {
     return total === 0 ? 0 : Number(((votes[id] ?? 0) / total * 100).toFixed(1));
   }, [votes, total]);
@@ -114,7 +114,7 @@ export default function PollClient({ poll: initialPoll }: Props) {
   // STATE 1: VOTING (Not expired, hasn't voted)
   if (!isExpired && !hasVoted) {
     return (
-      <div style={{ flex: 1, padding: "48px 32px", maxWidth: "800px", margin: "0 auto", width: "100%" }}>
+      <div className="flex-1 p-6 sm:p-12 max-w-[800px] mx-auto w-full">
         {/* Badges */}
         <div style={{ display: "flex", gap: "12px", marginBottom: "32px" }}>
           <span style={{
@@ -193,7 +193,7 @@ export default function PollClient({ poll: initialPoll }: Props) {
   // STATE 3: EXPIRED
   if (isExpired) {
     return (
-      <div style={{ flex: 1, padding: "48px 32px", display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
+      <div className="flex-1 p-6 sm:p-12 flex flex-col items-center w-full">
         <div style={{
           display: "inline-flex", alignItems: "center", gap: "8px",
           border: "1px solid var(--outline-variant)",
@@ -203,7 +203,7 @@ export default function PollClient({ poll: initialPoll }: Props) {
         }}>
           <Lock size={14} /> POLL CLOSED
         </div>
-        
+
         <h1 style={{ fontSize: "48px", fontWeight: 800, lineHeight: 1.1, marginBottom: "32px", textAlign: "center", maxWidth: "800px", color: "var(--on-surface)", letterSpacing: "-0.02em" }}>
           {poll.question}
         </h1>
@@ -218,12 +218,9 @@ export default function PollClient({ poll: initialPoll }: Props) {
           👥 Final Count: <strong style={{ color: "var(--secondary-fixed)" }}><CountUp value={total} /></strong> votes
         </div>
 
-        <div style={{
-          width: "100%", maxWidth: "800px",
+        <div className="w-full max-w-[800px] p-6 sm:p-10 mb-16 rounded-2xl" style={{
           background: "var(--surface-container-low)",
           border: "1px solid var(--surface-container-high)",
-          borderRadius: "var(--radius-xl)", padding: "40px",
-          marginBottom: "64px"
         }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "40px" }}>
             <h2 style={{ fontSize: "24px", fontWeight: 700, color: "var(--on-surface)" }}>Final Results</h2>
@@ -238,7 +235,7 @@ export default function PollClient({ poll: initialPoll }: Props) {
               const isWin = leader?.id === opt.id && total > 0;
               const color = isWin ? "var(--secondary-fixed)" : "var(--surface-bright)";
               const textColor = isWin ? "var(--on-surface)" : "var(--on-surface-variant)";
-              
+
               return (
                 <div key={opt.id}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
@@ -250,7 +247,7 @@ export default function PollClient({ poll: initialPoll }: Props) {
                       {p}%
                     </div>
                   </div>
-                  
+
                   <div style={{ display: "flex", alignItems: "center", gap: "16px", height: "48px" }}>
                     <div style={{
                       flex: 1, height: "100%", background: "var(--surface-container-highest)", borderRadius: "999px", overflow: "hidden", position: "relative"
@@ -270,7 +267,7 @@ export default function PollClient({ poll: initialPoll }: Props) {
         </div>
 
         <p style={{ fontSize: "18px", color: "var(--on-surface-variant)", marginBottom: "32px", textAlign: "center" }}>
-          The debate doesn't stop here. Start your own live poll and see<br/>what the world thinks right now.
+          The debate doesn&apos;t stop here. Start your own live poll and see<br />what the world thinks right now.
         </p>
 
         <Link
@@ -290,9 +287,9 @@ export default function PollClient({ poll: initialPoll }: Props) {
 
   // STATE 2: LIVE RESULTS (Not expired, has voted)
   return (
-    <div style={{ flex: 1, padding: "48px 32px", display: "flex", gap: "48px", maxWidth: "1280px", margin: "0 auto", width: "100%" }}>
+    <div className="flex-1 p-6 sm:p-12 flex flex-col lg:flex-row gap-8 lg:gap-12 max-w-[1280px] mx-auto w-full">
       {/* Left Sidebar */}
-      <div style={{ width: "320px", flexShrink: 0, display: "flex", flexDirection: "column", gap: "24px" }}>
+      <div className="w-full lg:w-[320px] shrink-0 flex flex-col gap-6">
         <div style={{
           background: "var(--surface-container-low)", border: "1px solid var(--surface-container-high)",
           borderRadius: "var(--radius-xl)", padding: "32px",
@@ -360,7 +357,7 @@ export default function PollClient({ poll: initialPoll }: Props) {
       </div>
 
       {/* Right Content */}
-      <div style={{ flex: 1, background: "var(--surface-container-low)", border: "1px solid var(--surface-container-high)", borderRadius: "var(--radius-xl)", padding: "48px" }}>
+      <div className="flex-1 p-6 sm:p-12 rounded-2xl" style={{ background: "var(--surface-container-low)", border: "1px solid var(--surface-container-high)" }}>
         <h1 style={{ fontSize: "36px", fontWeight: 800, lineHeight: 1.2, marginBottom: "48px", color: "var(--on-surface)", letterSpacing: "-0.02em" }}>
           {poll.question}
         </h1>
@@ -371,7 +368,7 @@ export default function PollClient({ poll: initialPoll }: Props) {
             const isWin = leader?.id === opt.id && total > 0;
             const color = isWin ? "var(--secondary-fixed)" : "var(--primary-fixed)";
             const barColor = isWin ? "var(--secondary-fixed)" : "var(--primary-fixed-dim)";
-            
+
             return (
               <div key={opt.id}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
@@ -383,7 +380,7 @@ export default function PollClient({ poll: initialPoll }: Props) {
                     {p}%
                   </div>
                 </div>
-                
+
                 <div style={{ display: "flex", alignItems: "center", gap: "16px", height: "16px" }}>
                   <div style={{
                     flex: 1, height: "100%", background: "var(--surface-container-highest)", borderRadius: "999px", overflow: "hidden", position: "relative"
@@ -400,11 +397,11 @@ export default function PollClient({ poll: initialPoll }: Props) {
             );
           })}
         </div>
-        
+
         <div style={{ marginTop: "48px", paddingTop: "24px", borderTop: "1px solid var(--surface-container-highest)", display: "flex", justifyContent: "space-between", fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--on-surface-variant)" }}>
           <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <span style={{ width: 8, height: 8, border: "2px solid currentColor", borderRadius: "50%", display: "inline-block", position: "relative" }}>
-               <span style={{ position: "absolute", top: 1, left: 1, right: 1, bottom: 1, border: "1px solid currentColor", borderRadius: "50%" }} />
+              <span style={{ position: "absolute", top: 1, left: 1, right: 1, bottom: 1, border: "1px solid currentColor", borderRadius: "50%" }} />
             </span>
             Connected via WebSocket
           </span>

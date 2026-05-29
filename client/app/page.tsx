@@ -57,30 +57,21 @@ export default function Home() {
 
   return (
     <div
-      style={{
-        flex: 1,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "32px",
-        background: "var(--background)",
-      }}
+      className="flex-1 flex items-center justify-center p-4 sm:p-8"
+      style={{ background: "var(--background)" }}
     >
       <form
         onSubmit={handleSubmit}
         noValidate
+        className="w-full max-w-[680px] p-6 sm:p-8 rounded-2xl"
         style={{
-          width: "100%",
-          maxWidth: "680px",
           background: "var(--surface-container-low)",
-          borderRadius: "var(--radius-xl)",
-          padding: "32px",
           border: "1px solid var(--surface-container-high)",
           boxShadow: "0 24px 48px -12px rgba(0, 0, 0, 0.4)",
         }}
       >
         {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "32px" }}>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center items-start gap-4 mb-8">
           <div>
             <h1 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "8px", letterSpacing: "-0.02em" }}>
               Launch New Poll
@@ -304,7 +295,7 @@ export default function Home() {
             </span>
           </div>
           
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px" }}>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {DURATION_PRESETS.map((p) => {
               const active = duration === p.value;
               return (

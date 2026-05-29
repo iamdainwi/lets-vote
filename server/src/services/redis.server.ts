@@ -138,3 +138,54 @@ export const getPollVotes = async (pollId: string): Promise<Record<string, numbe
 };
 
 export const pollChannel = channel;
+
+export interface PollSummary {
+    id: string;
+    question: string;
+    totalVotes: number;
+    expiresAt: number;
+}
+
+export const listActivePolls = async (): Promise<PollSummary[]> => {
+    const keys = await redis.keys("poll:*:meta");
+    const polls: PollSummary[] = [];
+
+    if (keys.length === 0) return polls;
+
+    const pipeline = redis.pipeline();
+    for (const key of keys) {
+        pipeline.hgetall(key);
+        const votesKey = key.replace(":meta", ":votes");
+        pipeline.hgetall(votesKey);
+    }
+
+    const results = await pipeline.exec();
+    if (!results) return polls;
+
+    for (let i = 0; i < keys.length; i++) {
+        const id = keys[i].split(":")[1];
+        const metaResult = results[i * 2];
+        const votesResult = results[i * 2 + 1];
+
+        if (metaResult[0] || votesResult[0]) continue;
+        
+        const meta = metaResult[1] as Record<string, string>;
+        const votes = votesResult[1] as Record<string, string>;
+
+        if (!meta || !meta.question) continue;
+
+        const totalVotes = Object.values(votes).reduce((acc, v) => acc + parseInt(v, 10), 0);
+        const expiresAt = parseInt(meta.expiresAt, 10);
+
+        polls.push({
+            id,
+            question: meta.question,
+            totalVotes,
+            expiresAt,
+        });
+    }
+
+    polls.sort((a, b) => b.totalVotes - a.totalVotes);
+
+    return polls;
+};

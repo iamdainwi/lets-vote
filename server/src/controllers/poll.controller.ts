@@ -1,8 +1,19 @@
 import { Request, Response } from "express";
-import { createPoll, getPoll, castVote, pollChannel } from "../services/redis.server.js";
+import { createPoll, getPoll, castVote, pollChannel, listActivePolls } from "../services/redis.server.js";
 import { redis } from "../lib/redis.js";
 
 type IdParams = { id: string };
+
+// GET /api/polls
+export const listPollsHandler = async (req: Request, res: Response) => {
+    try {
+        const polls = await listActivePolls();
+        return res.json(polls);
+    } catch (err) {
+        console.error("[listPolls]", err);
+        return res.status(500).json({ error: "Failed to fetch polls" });
+    }
+};
 
 // POST /api/polls
 export const createPollHandler = async (req: Request, res: Response) => {
