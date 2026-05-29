@@ -56,15 +56,11 @@ export const getPollHandler = async (req: Request<IdParams>, res: Response) => {
 // POST /api/polls/:id/vote
 export const voteHandler = async (req: Request<IdParams>, res: Response) => {
     try {
-        const { optionId } = req.body;
+        const { optionId, voterId } = req.body;
         if (!optionId) return res.status(400).json({ error: "optionId is required" });
+        if (!voterId) return res.status(400).json({ error: "voterId is required" });
 
-        const voterIp =
-            (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ||
-            req.socket.remoteAddress ||
-            "unknown";
-
-        const result = await castVote(req.params.id, optionId, voterIp as string);
+        const result = await castVote(req.params.id, optionId, voterId as string);
 
         if (!result.success) {
             const status = result.reason === "already_voted" ? 409 : 400;

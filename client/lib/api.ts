@@ -54,14 +54,25 @@ export async function fetchPoll(id: string): Promise<Poll> {
     return res.json();
 }
 
+function getVoterId(): string {
+    if (typeof window === "undefined") return "server-voter";
+    let voterId = localStorage.getItem("lets_vote_voter_id");
+    if (!voterId) {
+        voterId = crypto.randomUUID();
+        localStorage.setItem("lets_vote_voter_id", voterId);
+    }
+    return voterId;
+}
+
 export async function castVote(
     pollId: string,
     optionId: string
 ): Promise<{ votes: Record<string, number> }> {
+    const voterId = getVoterId();
     const res = await fetch(`${API_BASE}/api/polls/${pollId}/vote`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ optionId }),
+        body: JSON.stringify({ optionId, voterId }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Failed to vote");

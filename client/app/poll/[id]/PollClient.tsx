@@ -57,6 +57,7 @@ export default function PollClient({ poll: initialPoll }: Props) {
   const [voting, setVoting] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const { expired, display: countdown } = useCountdown(poll.expiresAt);
   const isExpired = expired || poll.expired;
@@ -91,12 +92,14 @@ export default function PollClient({ poll: initialPoll }: Props) {
   const handleVote = async () => {
     if (!selectedOption || votedFor || isExpired || voting) return;
     setVoting(true);
+    setError(null);
     try {
       const d = await castVote(poll.id, selectedOption);
       setVotes(d.votes);
       setVotedFor(selectedOption);
       localStorage.setItem(`voted:${poll.id}`, selectedOption);
     } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to cast vote");
       console.error("Vote failed", err);
     } finally {
       setVoting(false);
@@ -168,6 +171,12 @@ export default function PollClient({ poll: initialPoll }: Props) {
             );
           })}
         </div>
+
+        {error && (
+          <div style={{ padding: "16px", borderRadius: "var(--radius-md)", background: "rgba(244, 63, 94, 0.1)", border: "1px solid rgba(244, 63, 94, 0.2)", color: "var(--error)", marginBottom: "24px", fontSize: "14px", fontWeight: 600 }}>
+            {error === "already_voted" ? "You have already voted on this poll." : error}
+          </div>
+        )}
 
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <button
