@@ -79,7 +79,7 @@ export default function RootLayout({
           {/* Right Actions */}
           <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
             <Link
-              href="/"
+              href="/create"
               style={{
                 display: "flex",
                 alignItems: "center",

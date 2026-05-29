@@ -26,7 +26,7 @@ export default async function ExplorePage() {
             No active polls found.
           </p>
           <Link
-            href="/"
+            href="/create"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-accent text-accent-foreground font-bold transition-all hover:-translate-y-0.5"
           >
             Create the first one
