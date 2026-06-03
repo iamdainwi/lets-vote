@@ -39,7 +39,6 @@ export default function RootLayout({
         className="min-h-dvh flex flex-col"
         style={{ fontFamily: "var(--font-hanken)" }}
       >
-        {/* Navigation Bar */}
         <header
           style={{
             display: "flex",
@@ -53,7 +52,6 @@ export default function RootLayout({
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
-            {/* Logo */}
             <Link href="/" style={{ display: "flex", alignItems: "center", gap: "8px", textDecoration: "none" }}>
               <Zap style={{ color: "var(--secondary-container)" }} size={24} strokeWidth={3} />
               <span
@@ -76,7 +74,6 @@ export default function RootLayout({
             </nav>
           </div>
 
-          {/* Right Actions */}
           <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
             <Link
               href="/create"

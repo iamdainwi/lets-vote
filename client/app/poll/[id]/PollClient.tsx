@@ -28,10 +28,7 @@ function useCountdown(expiresAt: number) {
     display = `${String(m).padStart(2, "0")} : ${String(s).padStart(2, "0")}`;
   }
 
-  return {
-    expired: remaining <= 0,
-    display,
-  };
+  return { expired: remaining <= 0, display };
 }
 
 function CountUp({ value }: { value: number }) {
@@ -51,13 +48,13 @@ function CountUp({ value }: { value: number }) {
 interface Props { poll: Poll; }
 
 export default function PollClient({ poll: initialPoll }: Props) {
-  const [poll, setPoll] = useState<Poll>(initialPoll);
-  const [votes, setVotes] = useState<Record<string, number>>(initialPoll.votes);
-  const [votedFor, setVotedFor] = useState<string | null>(null);
-  const [voting, setVoting] = useState(false);
+  const [poll, setPoll]               = useState<Poll>(initialPoll);
+  const [votes, setVotes]             = useState<Record<string, number>>(initialPoll.votes);
+  const [votedFor, setVotedFor]       = useState<string | null>(null);
+  const [voting, setVoting]           = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied]           = useState(false);
+  const [error, setError]             = useState<string | null>(null);
 
   const { expired, display: countdown } = useCountdown(poll.expiresAt);
   const isExpired = expired || poll.expired;
@@ -75,7 +72,7 @@ export default function PollClient({ poll: initialPoll }: Props) {
         const m = JSON.parse(e.data);
         if (m.type === "init") { setPoll(m.poll); setVotes(m.poll.votes); }
         if (m.type === "vote") { setVotes(m.votes); }
-      } catch { /* noop */ }
+      } catch {}
     };
     return () => es.close();
   }, [poll.id, isExpired]);
@@ -114,11 +111,9 @@ export default function PollClient({ poll: initialPoll }: Props) {
 
   const hasVoted = !!votedFor;
 
-  // STATE 1: VOTING (Not expired, hasn't voted)
   if (!isExpired && !hasVoted) {
     return (
       <div className="flex-1 p-6 sm:p-12 max-w-[800px] mx-auto w-full">
-        {/* Badges */}
         <div style={{ display: "flex", gap: "12px", marginBottom: "32px" }}>
           <span style={{
             display: "inline-flex", alignItems: "center", gap: "6px",
@@ -174,7 +169,11 @@ export default function PollClient({ poll: initialPoll }: Props) {
 
         {error && (
           <div style={{ padding: "16px", borderRadius: "var(--radius-md)", background: "rgba(244, 63, 94, 0.1)", border: "1px solid rgba(244, 63, 94, 0.2)", color: "var(--error)", marginBottom: "24px", fontSize: "14px", fontWeight: 600 }}>
-            {error === "already_voted" ? "You have already voted on this poll." : error}
+            {error === "already_voted"
+              ? "You have already voted on this poll."
+              : error === "ip_rate_limited"
+              ? "Too many votes have been cast from your network. Please try again later."
+              : error}
           </div>
         )}
 
@@ -199,7 +198,6 @@ export default function PollClient({ poll: initialPoll }: Props) {
     );
   }
 
-  // STATE 3: EXPIRED
   if (isExpired) {
     return (
       <div className="flex-1 p-6 sm:p-12 flex flex-col items-center w-full">
@@ -242,8 +240,8 @@ export default function PollClient({ poll: initialPoll }: Props) {
             {poll.options.map((opt) => {
               const p = getPct(opt.id);
               const isWin = leader?.id === opt.id && total > 0;
-              const color = isWin ? "var(--secondary-fixed)" : "var(--surface-bright)";
-              const textColor = isWin ? "var(--on-surface)" : "var(--on-surface-variant)";
+              const color     = isWin ? "var(--secondary-fixed)" : "var(--surface-bright)";
+              const textColor = isWin ? "var(--on-surface)"      : "var(--on-surface-variant)";
 
               return (
                 <div key={opt.id}>
@@ -294,10 +292,8 @@ export default function PollClient({ poll: initialPoll }: Props) {
     );
   }
 
-  // STATE 2: LIVE RESULTS (Not expired, has voted)
   return (
     <div className="flex-1 p-6 sm:p-12 flex flex-col lg:flex-row gap-8 lg:gap-12 max-w-[1280px] mx-auto w-full">
-      {/* Left Sidebar */}
       <div className="w-full lg:w-[320px] shrink-0 flex flex-col gap-6">
         <div style={{
           background: "var(--surface-container-low)", border: "1px solid var(--surface-container-high)",
@@ -365,7 +361,6 @@ export default function PollClient({ poll: initialPoll }: Props) {
         </div>
       </div>
 
-      {/* Right Content */}
       <div className="flex-1 p-6 sm:p-12 rounded-2xl" style={{ background: "var(--surface-container-low)", border: "1px solid var(--surface-container-high)" }}>
         <h1 style={{ fontSize: "36px", fontWeight: 800, lineHeight: 1.2, marginBottom: "48px", color: "var(--on-surface)", letterSpacing: "-0.02em" }}>
           {poll.question}
@@ -373,10 +368,10 @@ export default function PollClient({ poll: initialPoll }: Props) {
 
         <div style={{ display: "flex", flexDirection: "column", gap: "40px" }}>
           {poll.options.map((opt) => {
-            const p = getPct(opt.id);
-            const isWin = leader?.id === opt.id && total > 0;
-            const color = isWin ? "var(--secondary-fixed)" : "var(--primary-fixed)";
-            const barColor = isWin ? "var(--secondary-fixed)" : "var(--primary-fixed-dim)";
+            const p        = getPct(opt.id);
+            const isWin    = leader?.id === opt.id && total > 0;
+            const color    = isWin ? "var(--secondary-fixed)"     : "var(--primary-fixed)";
+            const barColor = isWin ? "var(--secondary-fixed)"     : "var(--primary-fixed-dim)";
 
             return (
               <div key={opt.id}>
@@ -412,7 +407,7 @@ export default function PollClient({ poll: initialPoll }: Props) {
             <span style={{ width: 8, height: 8, border: "2px solid currentColor", borderRadius: "50%", display: "inline-block", position: "relative" }}>
               <span style={{ position: "absolute", top: 1, left: 1, right: 1, bottom: 1, border: "1px solid currentColor", borderRadius: "50%" }} />
             </span>
-            Connected via WebSocket
+            Connected via SSE
           </span>
           <span>Last updated: Just now</span>
         </div>

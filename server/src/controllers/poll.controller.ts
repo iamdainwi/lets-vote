@@ -4,7 +4,6 @@ import { redis } from "../lib/redis.js";
 
 type IdParams = { id: string };
 
-// GET /api/polls
 export const listPollsHandler = async (req: Request, res: Response) => {
     try {
         const polls = await listActivePolls();
@@ -15,7 +14,6 @@ export const listPollsHandler = async (req: Request, res: Response) => {
     }
 };
 
-// POST /api/polls
 export const createPollHandler = async (req: Request, res: Response) => {
     try {
         const { question, options, duration } = req.body;
@@ -33,7 +31,6 @@ export const createPollHandler = async (req: Request, res: Response) => {
         const ttl = Math.max(1, Math.min(10080, parseInt(duration, 10) || 5)) * 60;
 
         const poll = await createPoll(question.trim(), cleanOptions, ttl);
-
         return res.status(201).json({ id: poll.id });
     } catch (err) {
         console.error("[createPoll]", err);
@@ -41,7 +38,6 @@ export const createPollHandler = async (req: Request, res: Response) => {
     }
 };
 
-// GET /api/polls/:id
 export const getPollHandler = async (req: Request<IdParams>, res: Response) => {
     try {
         const poll = await getPoll(req.params.id);
@@ -53,17 +49,26 @@ export const getPollHandler = async (req: Request<IdParams>, res: Response) => {
     }
 };
 
-// POST /api/polls/:id/vote
 export const voteHandler = async (req: Request<IdParams>, res: Response) => {
     try {
         const { optionId, voterId } = req.body;
         if (!optionId) return res.status(400).json({ error: "optionId is required" });
-        if (!voterId) return res.status(400).json({ error: "voterId is required" });
+        if (!voterId)  return res.status(400).json({ error: "voterId is required" });
 
-        const result = await castVote(req.params.id, optionId, voterId as string);
+        const clientIp: string =
+            ((req.headers["x-forwarded-for"] as string) ?? "")
+                .split(",")[0]
+                .trim() ||
+            req.ip ||
+            req.socket?.remoteAddress ||
+            "unknown";
+
+        const result = await castVote(req.params.id, optionId, voterId as string, clientIp);
 
         if (!result.success) {
-            const status = result.reason === "already_voted" ? 409 : 400;
+            const status =
+                result.reason === "already_voted"   ? 409 :
+                result.reason === "ip_rate_limited" ? 429 : 400;
             return res.status(status).json({ error: result.reason });
         }
 
@@ -74,28 +79,22 @@ export const voteHandler = async (req: Request<IdParams>, res: Response) => {
     }
 };
 
-// GET /api/polls/:id/stream  — SSE
 export const sseStreamHandler = async (req: Request<IdParams>, res: Response) => {
     const { id } = req.params;
 
-    // Verify poll exists before subscribing
     const poll = await getPoll(id);
     if (!poll) {
         return res.status(404).json({ error: "Poll not found" });
     }
 
-    // SSE headers
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
-    res.setHeader("X-Accel-Buffering", "no"); // nginx: disable buffering
+    res.setHeader("Content-Type",    "text/event-stream");
+    res.setHeader("Cache-Control",   "no-cache");
+    res.setHeader("Connection",      "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
     res.flushHeaders();
 
-    // Send initial state
     res.write(`data: ${JSON.stringify({ type: "init", poll })}\n\n`);
 
-    // Each SSE client needs its own Redis subscriber (ioredis limitation: subscribed client
-    // cannot send other commands). We duplicate the redisSub connection per client.
     const subscriber = redis.duplicate();
     const ch = pollChannel(id);
 
@@ -108,12 +107,10 @@ export const sseStreamHandler = async (req: Request<IdParams>, res: Response) =>
     });
     subscriber.on("message", onMessage);
 
-    // Keepalive ping every 25 seconds
     const keepAlive = setInterval(() => {
         res.write(`: ping\n\n`);
     }, 25_000);
 
-    // Cleanup on client disconnect
     req.on("close", () => {
         clearInterval(keepAlive);
         subscriber.unsubscribe(ch);
