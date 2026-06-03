@@ -1,5 +1,7 @@
 import { redis } from "../lib/redis.js";
 import { nanoid } from "nanoid";
+import db from "../db/index.js";
+import { pollsTable, optionsTable, votesTable } from "../db/schema.js";
 
 export interface PollOption {
     id: string;
@@ -56,6 +58,24 @@ export const createPoll = async (
 
     await pipeline.exec();
 
+    // ── Persist to PostgreSQL (non-blocking; Redis is the source of truth) ──
+    try {
+        await db.insert(pollsTable).values({
+            id,
+            question,
+            expiresAt: new Date(expiresAt),
+        });
+        await db.insert(optionsTable).values(
+            pollOptions.map((opt) => ({
+                id: opt.id,
+                optionText: opt.text,
+                pollId: id,
+            }))
+        );
+    } catch (dbErr) {
+        console.warn("[DB] Failed to persist poll to Postgres (Redis OK):", dbErr);
+    }
+
     return {
         id,
         question,
@@ -89,7 +109,7 @@ export const getPoll = async (id: string): Promise<Poll | null> => {
 export const castVote = async (
     pollId: string,
     optionId: string,
-    voterIp: string
+    voterId: string
 ): Promise<{ success: boolean; reason?: string; votes?: Record<string, number> }> => {
     // Check poll exists
     const meta = await redis.hgetall(metaKey(pollId));
@@ -109,8 +129,8 @@ export const castVote = async (
         return { success: false, reason: "invalid_option" };
     }
 
-    // Dedup by IP — SADD returns 1 if added, 0 if already exists
-    const added = await redis.sadd(votersKey(pollId), voterIp);
+    // Dedup by voterId — SADD returns 1 if added, 0 if already exists
+    const added = await redis.sadd(votersKey(pollId), voterId);
     if (added === 0) {
         return { success: false, reason: "already_voted" };
     }
@@ -126,6 +146,18 @@ export const castVote = async (
 
     // Publish to SSE subscribers
     await redis.publish(channel(pollId), JSON.stringify({ type: "vote", votes }));
+
+    // ── Persist vote to PostgreSQL (non-blocking; Redis is source of truth) ──
+    try {
+        await db.insert(votesTable).values({
+            id: nanoid(10),
+            optionId,
+            pollId,
+            voterId,
+        });
+    } catch (dbErr) {
+        console.warn("[DB] Failed to persist vote to Postgres (Redis OK):", dbErr);
+    }
 
     return { success: true, votes };
 };
